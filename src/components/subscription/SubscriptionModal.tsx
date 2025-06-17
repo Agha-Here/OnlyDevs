@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Check, X, CreditCard } from 'lucide-react';
+import { Crown, Check, X, CreditCard, Loader } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -18,23 +18,34 @@ interface SubscriptionModalProps {
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, creator }) => {
   const [selectedTier, setSelectedTier] = useState<string>('Sugar Daddy Tier');
   const [isProcessing, setIsProcessing] = useState(false);
-  const { subscribeToCreator, updateSubscription } = useAuth();
+  const { user, subscribeToCreator } = useAuth();
 
   const handleSubscribe = async () => {
+    if (!user) {
+      toast.error('Please login to subscribe');
+      return;
+    }
+
     setIsProcessing(true);
     
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    subscribeToCreator(creator.id);
-    updateSubscription(selectedTier);
-    
-    toast.success(`Successfully subscribed to ${creator.displayName}! 🎉`);
-    setIsProcessing(false);
-    onClose();
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const success = await subscribeToCreator(creator.id, selectedTier);
+      
+      if (success) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('Subscription error:', error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const selectedTierData = subscriptionTiers.find(tier => tier.name === selectedTier);
+  const paidTiers = subscriptionTiers.filter(tier => tier.name !== 'Free Tier');
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -52,7 +63,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
 
       {/* Tier Selection */}
       <div className="space-y-3 mb-6">
-        {subscriptionTiers.filter(tier => tier.name !== 'Free Tier').map((tier) => (
+        {paidTiers.map((tier) => (
           <motion.div
             key={tier.name}
             whileHover={{ scale: 1.02 }}
@@ -77,6 +88,11 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
                       {tier.popular && (
                         <span className="bg-secondary-500 text-white text-xs px-2 py-1 rounded-full">
                           POPULAR
+                        </span>
+                      )}
+                      {tier.premium && (
+                        <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full">
+                          PREMIUM
                         </span>
                       )}
                     </div>
@@ -139,11 +155,18 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
 
       {/* Action Buttons */}
       <div className="flex space-x-3">
-        <Button variant="outline" onClick={onClose} className="flex-1">
+        <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessing}>
           Cancel
         </Button>
         <Button onClick={handleSubscribe} isLoading={isProcessing} className="flex-1">
-          {isProcessing ? 'Processing...' : `Subscribe for $${selectedTierData ? Math.round(selectedTierData.price * 0.5) : 0}`}
+          {isProcessing ? (
+            <>
+              <Loader size={16} className="mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            `Subscribe for $${selectedTierData ? Math.round(selectedTierData.price * 0.5) : 0}`
+          )}
         </Button>
       </div>
 
