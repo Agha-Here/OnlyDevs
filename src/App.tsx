@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -13,6 +13,7 @@ import { CTASection } from './components/sections/CTASection';
 import { CreatorsPage } from './pages/CreatorsPage';
 import { CreatorProfilePage } from './pages/CreatorProfilePage';
 import { DashboardPage } from './pages/DashboardPage';
+import { initializeSampleData } from './data/seedData';
 
 const HomePage = () => (
   <>
@@ -26,6 +27,11 @@ const HomePage = () => (
 );
 
 function App() {
+  useEffect(() => {
+    // Initialize sample data on app load
+    initializeSampleData();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>

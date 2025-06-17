@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Github, Mail, Eye, EyeOff, Heart, Zap, User, Crown } from 'lucide-react';
+import { Github, Mail, Eye, EyeOff, Heart, Zap, User, Crown, Loader } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useForm } from 'react-hook-form';
@@ -17,6 +17,7 @@ interface FormData {
   email: string;
   password: string;
   username?: string;
+  displayName?: string;
   confirmPassword?: string;
   isCreator?: boolean;
 }
@@ -36,17 +37,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
       if (type === 'login') {
         success = await login(data.email, data.password);
       } else {
-        success = await signup(data.email, data.password, data.username!, data.isCreator || false);
+        success = await signup(
+          data.email, 
+          data.password, 
+          data.username!, 
+          data.displayName || data.username!,
+          data.isCreator || false
+        );
       }
 
       if (success) {
-        toast.success(type === 'login' ? 'Welcome back, beautiful! 💕' : 'Welcome to the revolution! 🚀');
         onClose();
-      } else {
-        toast.error('Something went wrong. Try again!');
       }
     } catch (error) {
-      toast.error('Authentication failed. Please try again.');
+      console.error('Authentication error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -74,22 +78,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {isSignup && (
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Username (make it memorable 😉)
-            </label>
-            <input
-              {...register('username', { 
-                required: 'Username is required',
-                minLength: { value: 3, message: 'Username must be at least 3 characters' }
-              })}
-              className="w-full px-4 py-3 bg-dark-900 border border-primary-500/30 rounded-xl text-white placeholder-gray-500 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-500/20 outline-none transition-all"
-              placeholder="codecrusher69"
-            />
-            {errors.username && (
-              <p className="text-red-400 text-sm mt-1">{errors.username.message}</p>
-            )}
-          </div>
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Username (make it memorable 😉)
+              </label>
+              <input
+                {...register('username', { 
+                  required: 'Username is required',
+                  minLength: { value: 3, message: 'Username must be at least 3 characters' },
+                  pattern: { value: /^[a-zA-Z0-9_]+$/, message: 'Username can only contain letters, numbers, and underscores' }
+                })}
+                className="w-full px-4 py-3 bg-dark-900 border border-primary-500/30 rounded-xl text-white placeholder-gray-500 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-500/20 outline-none transition-all"
+                placeholder="codecrusher69"
+              />
+              {errors.username && (
+                <p className="text-red-400 text-sm mt-1">{errors.username.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Display Name
+              </label>
+              <input
+                {...register('displayName', { 
+                  required: 'Display name is required',
+                  minLength: { value: 2, message: 'Display name must be at least 2 characters' }
+                })}
+                className="w-full px-4 py-3 bg-dark-900 border border-primary-500/30 rounded-xl text-white placeholder-gray-500 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-500/20 outline-none transition-all"
+                placeholder="Your beautiful name"
+              />
+              {errors.displayName && (
+                <p className="text-red-400 text-sm mt-1">{errors.displayName.message}</p>
+              )}
+            </div>
+          </>
         )}
 
         <div>
@@ -166,8 +190,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
           </>
         )}
 
-        <Button type="submit" className="w-full" isLoading={isLoading}>
-          {isSignup ? 'Start Your Empire' : 'Enter Paradise'}
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader size={18} className="mr-2 animate-spin" />
+              {isSignup ? 'Creating your empire...' : 'Entering paradise...'}
+            </>
+          ) : (
+            isSignup ? 'Start Your Empire' : 'Enter Paradise'
+          )}
         </Button>
       </form>
 
@@ -186,6 +217,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="flex items-center justify-center px-4 py-3 border border-primary-500/30 rounded-xl text-white hover:border-secondary-500/50 transition-all"
+            type="button"
           >
             <Github size={20} className="mr-2" />
             GitHub
@@ -194,12 +226,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="flex items-center justify-center px-4 py-3 border border-primary-500/30 rounded-xl text-white hover:border-secondary-500/50 transition-all"
+            type="button"
           >
             <Mail size={20} className="mr-2" />
             Google
           </motion.button>
         </div>
       </div>
+
+      <p className="text-center text-gray-400 text-xs mt-4">
+        By signing up, you agree to our Terms of Service and Privacy Policy
+      </p>
     </Modal>
   );
 };
