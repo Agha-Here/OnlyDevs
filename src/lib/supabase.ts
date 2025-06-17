@@ -11,6 +11,7 @@ export interface Profile {
   id: string
   username: string
   display_name: string
+  email: string // Add email field
   avatar_url?: string
   is_creator: boolean
   subscription_tier: string
