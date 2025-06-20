@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Check, X, CreditCard, Loader } from 'lucide-react';
+import { Crown, Check, CreditCard, Loader } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -158,7 +158,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
         <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessing}>
           Cancel
         </Button>
-        <Button onClick={handleSubscribe} isLoading={isProcessing} className="flex-1">
+        <Button onClick={handleSubscribe} className="flex-1" disabled={isProcessing}>
           {isProcessing ? (
             <>
               <Loader size={16} className="mr-2 animate-spin" />

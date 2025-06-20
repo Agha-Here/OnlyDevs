@@ -2,35 +2,21 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'https://hnclrfzxxxbpcavzinmj.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhuY2xyZnp4eHhicGNhdnppbm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxODUwMzEsImV4cCI6MjA2NTc2MTAzMX0.z6L1bybJp1iGJlgN7N3IMlmNYmMcgIihLMPtnFt8pV0';
-//import.meta.env.VITE_SUPABASE_ANON_KEY
-  
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Database types
 export interface Profile {
-<<<<<<< HEAD
-  id: string;
-  username: string;
-  display_name: string;
-  email: string;
-  avatar_url?: string;
-  is_creator: boolean;
-  subscription_tier: string;
-  subscriptions: string[];
-  join_date: string;
-  total_spent: number;
-=======
   id: string
   username: string
   display_name: string
-  email: string // Add email field
+  email: string
   avatar_url?: string
   is_creator: boolean
   subscription_tier: string
   subscriptions: string[]
   join_date: string
   total_spent: number
->>>>>>> 6584518996d93473c6cfda87b2d099209eab4bf4
 }
 
 export interface Creator {
@@ -55,6 +41,7 @@ export interface Content {
   description?: string;
   category: string;
   thumbnail_url?: string;
+  video_url?: string;
   duration?: string;
   views: number;
   likes: number;
@@ -69,7 +56,7 @@ export interface Subscription {
   tier_name: string;
   start_date: string;
   end_date?: string;
-  status: 'active' | 'cancelled';
+  status: 'active' | 'cancelled' | 'expired';
   amount: number;
 }
 
@@ -247,12 +234,7 @@ export const getCreatorContent = async (creatorId: string) => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data;
-};
-
-export const seedSampleData = async () => {
-  // You can leave this empty or add mock seeding logic if you want
-  return;
+  return data as Content[];
 };
 
 export const subscribeToCreator = async (
@@ -298,6 +280,21 @@ export const subscribeToCreator = async (
     creator_id: creatorId,
     amount: tierPrice 
   });
+
+  // Update user's subscriptions array
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('subscriptions')
+    .eq('id', subscriberId)
+    .single();
+
+  if (profile) {
+    const updatedSubscriptions = [...(profile.subscriptions || []), creatorId];
+    await supabase
+      .from('profiles')
+      .update({ subscriptions: updatedSubscriptions })
+      .eq('id', subscriberId);
+  }
 
   return data as Subscription;
 };
@@ -346,4 +343,11 @@ const getTierPrice = (tierName: string): number => {
     'Whale Tier': 60
   };
   return tiers[tierName as keyof typeof tiers] || 0;
+};
+
+// Seed sample data function (for development)
+export const seedSampleData = async () => {
+  // This function is intentionally empty as we're using SQL inserts
+  // The sample data is inserted via the migration file
+  return Promise.resolve();
 };
