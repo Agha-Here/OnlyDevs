@@ -5,7 +5,6 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,63 +15,67 @@ interface AuthModalProps {
 interface FormData {
   email: string;
   password: string;
+  confirmPassword?: string;
   username?: string;
   displayName?: string;
-  confirmPassword?: string;
   isCreator?: boolean;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<FormData>();
+  const { register, handleSubmit, formState: { errors }, watch, reset } = useForm<FormData>();
   const { login, signup } = useAuth();
+
+  const password = watch('password');
+  const isSignup = type === 'signup';
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     
     try {
       let success = false;
-      
-      if (type === 'login') {
-        success = await login(data.email, data.password);
-      } else {
+
+      if (isSignup) {
         success = await signup(
-          data.email, 
-          data.password, 
-          data.username!, 
+          data.email,
+          data.password,
+          data.username!,
           data.displayName || data.username!,
           data.isCreator || false
         );
+      } else {
+        success = await login(data.email, data.password);
       }
 
       if (success) {
+        reset();
         onClose();
       }
     } catch (error) {
-      console.error('Authentication error:', error);
+      console.error('Auth error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const isSignup = type === 'signup';
-  const password = watch('password');
-
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="text-center mb-6">
         <div className="w-16 h-16 bg-gradient-to-r from-secondary-500 to-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          {isSignup ? <Zap size={32} className="text-white" /> : <Heart size={32} className="text-white" />}
+          {isSignup ? (
+            <Zap size={32} className="text-white" />
+          ) : (
+            <Heart size={32} className="text-white" />
+          )}
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">
           {isSignup ? 'Join the Revolution' : 'Welcome Back, Beautiful'}
         </h2>
         <p className="text-gray-400">
           {isSignup 
-            ? 'Turn your code into cold hard cash 💰' 
-            : 'Your favorite developers missed you 💕'
-          }
+            ? 'Turn your code into cold hard cash 💰'
+            : 'Your favorite developers missed you 💕'}
         </p>
       </div>
 
@@ -81,15 +84,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
           <>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Username (make it memorable 😉)
+                Username
               </label>
               <input
-                {...register('username', { 
+                {...register('username', {
                   required: 'Username is required',
-                  minLength: { value: 3, message: 'Username must be at least 3 characters' },
-                  pattern: { value: /^[a-zA-Z0-9_]+$/, message: 'Username can only contain letters, numbers, and underscores' }
+                  minLength: {
+                    value: 3,
+                    message: 'Username must be at least 3 characters'
+                  },
+                  pattern: {
+                    value: /^[a-zA-Z0-9_]+$/,
+                    message: 'Username can only contain letters, numbers and underscores'
+                  }
                 })}
-                className="w-full px-4 py-3 bg-dark-900 border border-primary-500/30 rounded-xl text-white placeholder-gray-500 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-500/20 outline-none transition-all"
+                className="input-primary w-full"
                 placeholder="codecrusher69"
               />
               {errors.username && (
@@ -102,30 +111,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
                 Display Name
               </label>
               <input
-                {...register('displayName', { 
-                  required: 'Display name is required',
-                  minLength: { value: 2, message: 'Display name must be at least 2 characters' }
-                })}
-                className="w-full px-4 py-3 bg-dark-900 border border-primary-500/30 rounded-xl text-white placeholder-gray-500 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-500/20 outline-none transition-all"
+                {...register('displayName')}
+                className="input-primary w-full"
                 placeholder="Your beautiful name"
               />
-              {errors.displayName && (
-                <p className="text-red-400 text-sm mt-1">{errors.displayName.message}</p>
-              )}
             </div>
           </>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Email
+          </label>
           <input
-            {...register('email', { 
+            {...register('email', {
               required: 'Email is required',
-              pattern: { value: /^\S+@\S+$/i, message: 'Invalid email address' }
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Invalid email address'
+              }
             })}
             type="email"
-            className="w-full px-4 py-3 bg-dark-900 border border-primary-500/30 rounded-xl text-white placeholder-gray-500 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-500/20 outline-none transition-all"
-            placeholder="your.email@example.com"
+            className="input-primary w-full"
+            placeholder="your.name@example.com"
           />
           {errors.email && (
             <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
@@ -133,23 +141,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Password
+          </label>
           <div className="relative">
             <input
-              {...register('password', { 
+              {...register('password', {
                 required: 'Password is required',
-                minLength: { value: 6, message: 'Password must be at least 6 characters' }
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters'
+                }
               })}
               type={showPassword ? 'text' : 'password'}
-              className="w-full px-4 py-3 bg-dark-900 border border-primary-500/30 rounded-xl text-white placeholder-gray-500 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-500/20 outline-none transition-all pr-12"
+              className="input-primary w-full pr-10"
               placeholder="Make it strong 💪"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2"
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? (
+                <EyeOff size={20} className="text-gray-400" />
+              ) : (
+                <Eye size={20} className="text-gray-400" />
+              )}
             </button>
           </div>
           {errors.password && (
@@ -160,29 +177,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
         {isSignup && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Confirm Password
+              </label>
               <input
-                {...register('confirmPassword', { 
+                {...register('confirmPassword', {
                   required: 'Please confirm your password',
-                  validate: value => value === password || 'Passwords do not match'
+                  validate: value => 
+                    value === password || 'Passwords do not match'
                 })}
-                type={showPassword ? 'text' : 'password'}
-                className="w-full px-4 py-3 bg-dark-900 border border-primary-500/30 rounded-xl text-white placeholder-gray-500 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-500/20 outline-none transition-all"
+                type="password"
+                className="input-primary w-full"
                 placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
-                <p className="text-red-400 text-sm mt-1">{errors.confirmPassword.message}</p>
+                <p className="text-red-400 text-sm mt-1">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 
-            <div className="flex items-center space-x-3 p-4 bg-primary-500/10 rounded-xl border border-primary-500/20">
+            <div className="flex items-center space-x-2 p-4 bg-primary-500/10 rounded-xl">
               <input
                 {...register('isCreator')}
                 type="checkbox"
                 id="isCreator"
-                className="w-4 h-4 text-secondary-500 bg-dark-900 border-primary-500/30 rounded focus:ring-secondary-500 focus:ring-2"
+                className="checkbox-primary"
               />
-              <label htmlFor="isCreator" className="text-gray-300 text-sm flex items-center">
+              <label 
+                htmlFor="isCreator" 
+                className="text-gray-300 text-sm flex items-center"
+              >
                 <Crown size={16} className="text-yellow-400 mr-2" />
                 I want to become a creator and start earning
               </label>
@@ -190,14 +215,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
           </>
         )}
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isLoading}
+        >
           {isLoading ? (
             <>
-              <Loader size={18} className="mr-2 animate-spin" />
-              {isSignup ? 'Creating your empire...' : 'Entering paradise...'}
+              <Loader size={20} className="mr-2 animate-spin" />
+              {isSignup ? 'Creating your empire...' : 'Logging in...'}
             </>
           ) : (
-            isSignup ? 'Start Your Empire' : 'Enter Paradise'
+            isSignup ? 'Create Account' : 'Login'
           )}
         </Button>
       </form>
@@ -205,37 +234,49 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-primary-500/20" />
+            <div className="w-full border-t border-gray-600" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-dark-800 text-gray-400">Or continue with</span>
+            <span className="px-2 bg-dark-800 text-gray-400">
+              Or continue with
+            </span>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center justify-center px-4 py-3 border border-primary-500/30 rounded-xl text-white hover:border-secondary-500/50 transition-all"
-            type="button"
-          >
-            <Github size={20} className="mr-2" />
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <Button variant="outline" className="w-full">
+            <Github className="mr-2 h-4 w-4" />
             GitHub
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center justify-center px-4 py-3 border border-primary-500/30 rounded-xl text-white hover:border-secondary-500/50 transition-all"
-            type="button"
-          >
-            <Mail size={20} className="mr-2" />
+          </Button>
+          <Button variant="outline" className="w-full">
+            <Mail className="mr-2 h-4 w-4" />
             Google
-          </motion.button>
+          </Button>
         </div>
       </div>
 
-      <p className="text-center text-gray-400 text-xs mt-4">
-        By signing up, you agree to our Terms of Service and Privacy Policy
+      <p className="mt-4 text-center text-sm text-gray-400">
+        {isSignup ? (
+          <>
+            Already have an account?{' '}
+            <button
+              onClick={() => onClose()}
+              className="text-primary-500 hover:text-primary-400"
+            >
+              Login
+            </button>
+          </>
+        ) : (
+          <>
+            Don't have an account?{' '}
+            <button
+              onClick={() => onClose()}
+              className="text-primary-500 hover:text-primary-400"
+            >
+              Sign up
+            </button>
+          </>
+        )}
       </p>
     </Modal>
   );

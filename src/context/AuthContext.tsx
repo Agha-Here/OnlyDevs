@@ -2,10 +2,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { 
   supabase, 
-  signUp as supabaseSignUp, 
-  signIn as supabaseSignIn, 
+  signUp as supabaseSignUp,
+  signIn as supabaseSignIn,
   signOut as supabaseSignOut,
-  getCurrentUser,
   getProfile,
   getCreator,
   subscribeToCreator as supabaseSubscribeToCreator,
@@ -30,8 +29,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 };
@@ -44,31 +43,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        await loadUserData(session.user.id);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserData(session.user.id);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    getInitialSession();
+    initializeAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        await loadUserData(session.user.id);
-      } else {
-        setUser(null);
-        setProfile(null);
-        setCreator(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user);
+          await loadUserData(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setProfile(null);
+          setCreator(null);
+        }
       }
-      setLoading(false);
-    });
+    );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadUserData = async (userId: string) => {
@@ -89,32 +96,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       await supabaseSignIn(email, password);
-      toast.success('Welcome back, beautiful! 💕');
+      toast.success('Welcome back, gorgeous! 💕');
       return true;
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error(error.message || 'Login failed. Please try again.');
+      toast.error(error.message || 'Login failed');
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const signup = async (email: string, password: string, username: string, displayName: string, isCreator: boolean): Promise<boolean> => {
+  const signup = async (
+    email: string,
+    password: string,
+    username: string,
+    displayName: string,
+    isCreator: boolean
+  ): Promise<boolean> => {
     try {
       setLoading(true);
       await supabaseSignUp(email, password, username, displayName, isCreator);
-      toast.success('Welcome to the revolution! 🚀');
+      toast.success(
+        isCreator 
+          ? 'Welcome to the creator community! 🌟' 
+          : 'Welcome to OnlyDevs! 🚀'
+      );
       return true;
     } catch (error: any) {
       console.error('Signup error:', error);
-      if (error.message.includes('already registered')) {
-        toast.error('That email is already taken by another coding hottie! 💕');
-      } else if (error.message.includes('username')) {
-        toast.error("That username's taken by another coding hottie!");
-      } else {
-        toast.error(error.message || 'Signup failed. Please try again.');
-      }
+      toast.error(error.message || 'Signup failed');
       return false;
     } finally {
       setLoading(false);
@@ -124,17 +135,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async (): Promise<void> => {
     try {
       await supabaseSignOut();
-      setUser(null);
-      setProfile(null);
-      setCreator(null);
       toast.success('See you later, gorgeous! 👋');
     } catch (error: any) {
       console.error('Logout error:', error);
-      toast.error('Logout failed. Please try again.');
+      toast.error('Logout failed');
     }
   };
 
-  const subscribeToCreator = async (creatorId: string, tierName: string): Promise<boolean> => {
+  const subscribeToCreator = async (
+    creatorId: string,
+    tierName: string
+  ): Promise<boolean> => {
     if (!user || !profile) {
       toast.error('Please login to subscribe');
       return false;
@@ -142,19 +153,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       await supabaseSubscribeToCreator(user.id, creatorId, tierName);
-      
-      // Reload profile to get updated subscriptions
       await loadUserData(user.id);
-      
-      toast.success(`Successfully subscribed! Welcome to the exclusive club! 🎉`);
+      toast.success('Successfully subscribed! 🎉');
       return true;
     } catch (error: any) {
       console.error('Subscription error:', error);
-      if (error.message.includes('Already subscribed')) {
-        toast.error('You\'re already subscribed to this hottie! 💕');
-      } else {
-        toast.error(error.message || 'Subscription failed. Please try again.');
-      }
+      toast.error(error.message || 'Subscription failed');
       return false;
     }
   };
@@ -163,18 +167,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return profile?.subscriptions?.includes(creatorId) || false;
   };
 
+  const value = {
+    user,
+    profile,
+    creator,
+    loading,
+    login,
+    signup,
+    logout,
+    subscribeToCreator,
+    isSubscribedTo
+  };
+
   return (
-    <AuthContext.Provider value={{
-      user,
-      profile,
-      creator,
-      loading,
-      login,
-      signup,
-      logout,
-      subscribeToCreator,
-      isSubscribedTo
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
