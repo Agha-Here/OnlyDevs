@@ -8,6 +8,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Database types
 export interface Profile {
+<<<<<<< HEAD
   id: string;
   username: string;
   display_name: string;
@@ -18,6 +19,18 @@ export interface Profile {
   subscriptions: string[];
   join_date: string;
   total_spent: number;
+=======
+  id: string
+  username: string
+  display_name: string
+  email: string // Add email field
+  avatar_url?: string
+  is_creator: boolean
+  subscription_tier: string
+  subscriptions: string[]
+  join_date: string
+  total_spent: number
+>>>>>>> 6584518996d93473c6cfda87b2d099209eab4bf4
 }
 
 export interface Creator {
