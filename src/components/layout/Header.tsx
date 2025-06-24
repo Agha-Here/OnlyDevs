@@ -143,13 +143,16 @@ export const Header: React.FC = () => {
                 <Link to="/creators" className="block text-gray-300 hover:text-secondary-500 transition-colors py-2">Creators</Link>
                 <a href="#categories" className="block text-gray-300 hover:text-secondary-500 transition-colors py-2">Categories</a>
                 <a href="#pricing" className="block text-gray-300 hover:text-secondary-500 transition-colors py-2">Pricing</a>
-                <Link
-                  to="/codepulse"
-                  className="block w-full text-center mt-2 px-4 py-2 rounded-xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg hover:from-pink-400 hover:to-indigo-400 transition-all animate-pulse border-2 border-secondary-500"
-                  style={{ boxShadow: '0 0 16px 2px #a78bfa, 0 0 32px 4px #ec4899' }}
-                >
-                  CodePulse
-                </Link>
+                <a
+  href="https://codepulsepro.netlify.app"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="ml-4 px-4 py-2 rounded-xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg hover:from-pink-400 hover:to-indigo-400 transition-all animate-pulse border-2 border-secondary-500"
+  style={{ boxShadow: '0 0 16px 2px #a78bfa, 0 0 32px 4px #ec4899' }}
+>
+  CodePulse
+</a>
+
                 
                 {user ? (
                   <div className="pt-4 border-t border-primary-500/20 space-y-3">
