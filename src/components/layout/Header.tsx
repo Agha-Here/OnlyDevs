@@ -53,13 +53,16 @@ export const Header: React.FC = () => {
                 <Crown size={16} className="text-yellow-400" />
                 <span>2,847 earning $500+/month</span>
               </div>
-              <Link
-                to="/codepulse"
-                className="ml-4 px-4 py-2 rounded-xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg hover:from-pink-400 hover:to-indigo-400 transition-all animate-pulse border-2 border-secondary-500"
-                style={{ boxShadow: '0 0 16px 2px #a78bfa, 0 0 32px 4px #ec4899' }}
-              >
-                CodePulse
-              </Link>
+             <a
+  href="https://codepulsepro.netlify.app"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="ml-4 px-4 py-2 rounded-xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg hover:from-pink-400 hover:to-indigo-400 transition-all animate-pulse border-2 border-secondary-500"
+  style={{ boxShadow: '0 0 16px 2px #a78bfa, 0 0 32px 4px #ec4899' }}
+>
+  CodePulse
+</a>
+
             </nav>
 
             {/* Desktop Auth/User Menu */}
