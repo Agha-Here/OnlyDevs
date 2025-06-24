@@ -64,13 +64,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
       <div className="text-center mb-6">
         <div className="w-16 h-16 bg-gradient-to-r from-secondary-500 to-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
           {isSignup ? (
-            <Zap size={32} className="text-white" />
+            <Heart size={32} className="text-white" />
           ) : (
             <Heart size={32} className="text-white" />
           )}
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">
-          {isSignup ? 'Join the Revolution' : 'Welcome Back, Beautiful'}
+          {isSignup ? 'Join OnlyDevs' : 'Welcome Back, Beautiful'}
         </h2>
         <p className="text-gray-400">
           {isSignup 
@@ -231,29 +231,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type }) =
         </Button>
       </form>
 
-      <div className="mt-6">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-600" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-dark-800 text-gray-400">
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <Button variant="outline" className="w-full">
-            <Github className="mr-2 h-4 w-4" />
-            GitHub
-          </Button>
-          <Button variant="outline" className="w-full">
-            <Mail className="mr-2 h-4 w-4" />
-            Google
-          </Button>
-        </div>
-      </div>
 
       <p className="mt-4 text-center text-sm text-gray-400">
         {isSignup ? (

@@ -171,7 +171,7 @@ export const CreatorsSection: React.FC = () => {
         >
           <Link to="/creators">
             <Button size="lg" variant="outline">
-              Browse All {creators.length * 10}+ Creators
+              Browse All 36+ Creators
             </Button>
           </Link>
           <p className="text-gray-400 mt-4">New creators join daily • Find your perfect coding match</p>

@@ -60,6 +60,71 @@ export interface Subscription {
   amount: number;
 }
 
+/**
+ * Real-time 1-on-1 chat system using Supabase
+ * Messages table: id, sender_id, receiver_id, message, created_at
+ */
+
+export interface ChatMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  message: string;
+  created_at: string;
+}
+
+/**
+ * Fetch all messages between two users (ordered by created_at ascending)
+ */
+export const fetchMessages = async (currentUserId: string, selectedUserId: string): Promise<ChatMessage[]> => {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${selectedUserId}),and(sender_id.eq.${selectedUserId},receiver_id.eq.${currentUserId})`)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data as ChatMessage[];
+};
+
+/**
+ * Insert a new message
+ */
+export const sendMessage = async (senderId: string, receiverId: string, message: string): Promise<ChatMessage> => {
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({ sender_id: senderId, receiver_id: receiverId, message })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as ChatMessage;
+};
+
+/**
+ * Subscribe to new incoming messages in real-time between two users
+ * Calls the callback with the new message when received
+ */
+export const subscribeToMessages = (
+  currentUserId: string,
+  selectedUserId: string,
+  onMessage: (msg: ChatMessage) => void
+) => {
+  const channel = supabase.channel(`chat:${currentUserId}:${selectedUserId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `or(and(sender_id.eq.${currentUserId},receiver_id.eq.${selectedUserId}),and(sender_id.eq.${selectedUserId},receiver_id.eq.${currentUserId}))`
+      },
+      (payload) => {
+        onMessage(payload.new as ChatMessage);
+      }
+    )
+    .subscribe();
+  return channel;
+}
+
 // Auth helpers
 export const signUp = async (
   email: string, 
@@ -343,6 +408,61 @@ const getTierPrice = (tierName: string): number => {
     'Whale Tier': 60
   };
   return tiers[tierName as keyof typeof tiers] || 0;
+};
+
+/**
+ * Sign up or log in a user and ensure a profile exists in the profiles table.
+ * If the profile already exists, do not duplicate it.
+ * Fields: id, username, avatar_url, created_at
+ */
+export const signUpOrLogin = async (
+  email: string,
+  password: string,
+  username: string,
+  avatar_url?: string
+) => {
+  // Try to sign up
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { username, avatar_url } }
+  });
+
+  // If user already exists, try to log in
+  let userId: string | undefined;
+  if (signUpError && signUpError.message.includes('User already registered')) {
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) throw signInError;
+    userId = signInData.user?.id;
+  } else if (signUpData.user) {
+    userId = signUpData.user.id;
+  } else if (signUpError) {
+    throw signUpError;
+  }
+
+  if (!userId) throw new Error('User ID not found after signup/login');
+
+  // Check if profile already exists
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', userId)
+    .single();
+
+  if (!existingProfile) {
+    // Insert new profile
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        username,
+        avatar_url: avatar_url || null,
+        created_at: new Date().toISOString(),
+      });
+    if (insertError) throw insertError;
+  }
+
+  return userId;
 };
 
 // Seed sample data function (for development)

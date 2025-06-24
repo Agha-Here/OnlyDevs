@@ -14,6 +14,8 @@ import { CreatorsPage } from './pages/CreatorsPage';
 import { CreatorProfilePage } from './pages/CreatorProfilePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { initializeSampleData } from './data/seedData';
+import { ChatPage } from './pages/ChatPage';
+
 
 const HomePage = () => (
   <>
@@ -42,6 +44,8 @@ function App() {
             <Route path="/creators" element={<CreatorsPage />} />
             <Route path="/creator/:username" element={<CreatorProfilePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+
           </Routes>
         </main>
         <Footer />

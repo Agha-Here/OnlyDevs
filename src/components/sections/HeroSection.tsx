@@ -51,12 +51,11 @@ export const HeroSection: React.FC = () => {
               <span className="bg-gradient-to-r from-secondary-500 to-primary-500 bg-clip-text text-transparent">
                 The Love They Deserve
               </span>
-              <Heart className="inline-block ml-4 text-secondary-500 animate-pulse-glow" size={60} />
+              <Heart className="inline-block ml-4 text-secondary-500 " size={60} />
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-              Subscribe to exclusive coding content from your favorite developers.<br />
-              From algorithms to intimate debugging sessions.
+            <p className="text-xl md:text-2xl text-gray-300 mb-20 max-w-4xl mx-auto leading-relaxed">
+            
             </p>
           </motion.div>
 
@@ -84,28 +83,28 @@ export const HeroSection: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
           >
-            <div className="text-center">
+            <div className="text-center mt-10">
               <div className="flex items-center justify-center mb-2">
                 <TrendingUp className="text-secondary-500 mr-2" size={24} />
                 <span className="text-3xl font-bold text-white">2,847</span>
               </div>
               <p className="text-gray-400">Developers earning $500+/month</p>
             </div>
-            <div className="text-center">
+            <div className="text-center mt-10">
               <div className="flex items-center justify-center mb-2">
                 <Users className="text-primary-500 mr-2" size={24} />
                 <span className="text-3xl font-bold text-white">15,420</span>
               </div>
               <p className="text-gray-400">Active subscribers</p>
             </div>
-            <div className="text-center">
+            <div className="text-center mt-10">
               <div className="flex items-center justify-center mb-2">
                 <DollarSign className="text-accent-500 mr-2" size={24} />
                 <span className="text-3xl font-bold text-white">$2.1M</span>
               </div>
-              <p className="text-gray-400">Paid to creators this year</p>
+              <p className="text-gray-400 ">Paid to creators this year</p>
             </div>
-            <div className="text-center">
+            <div className="text-center mt-10">
               <div className="flex items-center justify-center mb-2">
                 <Star className="text-yellow-400 mr-2" size={24} />
                 <span className="text-3xl font-bold text-white">4.9</span>
